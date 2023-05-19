@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>主页</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="/index">主页</a>
+        <a class="navbar-brand" href="/train">训练</a>
+      <a class="navbar-brand" href="/predict">预测</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <form class="form-inline my-2 my-lg-0 ml-auto" method="get" action="/searchaction">
+          <input class="form-control mr-sm-2" type="search" name="equip_name" id="equip_name" placeholder="输入要搜索的器材名称" aria-label="搜索">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">查找</button>
+        </form>
+      </div>
+    </nav>
+    <div class="container my-3">
+    <div class="input-group mb-3">
+      <div class="input-group-append">
+             <form method="post" enctype="multipart/form-data" action="/import_excel">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <div class="text-center">
+                            <label class="btn btn-primary">
+                                选择Excel文件
+                                <input type="file" class="d-none" name="file">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success">导入</button>
+                        <button class="btn btn-outline-primary" type="button" id="add-btn">添加</button>
+                    </div>
+                </form>
+      </div>
+    </div>
+	<div class="container">
+  <table class="table">
+  <thead>
+    <tr>
+      <th>器材名称</th>
+      <th>现存数量</th>
+      <th>完好率</th>
+      <th>保养期限</th>
+      <th>管理人员</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for equip in equip_list %}
+  <tr>
+    <td>{{ equip.equip_name }}</td>
+    <td>{{ equip.exist_num }}</td>
+    <td>{{ equip.rate }}</td>
+    <td>{{ equip.period }}</td>
+    <td>{{ equip.admin_per }}</td>
+      <td><a class="btn btn-primary" href="{% url 'updateequip' equip_id=equip.id %}">更新</a>｜<a class="btn btn-primary" href="{% url 'deleteequip' equip_id=equip.id %}" >删除</a> </td>
+  </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<div id="chart" style="width: 100%; height: 500px;"></div>
+</body>
+<script>
+    $(document).ready(function() {
+
+    $('#search-btn').click(function() {
+        const equip_name = document.getElementById('equip_name').value;
+    window.location.href = "/searchaction?equip_name="+equip_name;
+
+  });
+  $('#add-btn').click(function() {
+        window.location.href = "/insertequip";
+  });
+});
+</script>
+<script>
+$(function() {
+    $.getJSON("{% url 'chart_view' %}", function(data) {
+        var myChart = echarts.init(document.getElementById('chart'));
+        var option = {
+            title: {
+                text: '器材数量可视化'
+            },
+            tooltip: {},
+            xAxis: {
+                data: data.categories
+            },
+            yAxis: {},
+            series: [{
+                name: 'Sales',
+                type: 'bar',
+                data: data.values
+            }]
+        };
+        myChart.setOption(option);
+    });
+});
+</script>
+</html>
